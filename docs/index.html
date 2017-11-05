@@ -9,10 +9,10 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="author" content="Your name here" />
+<meta name="author" content="Xiaohan Rui" />
 
 
-<title>I have the best titles</title>
+<title>Visualization of air quality in Buffalo and the effect factors</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -296,87 +296,170 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">I have the best titles</h1>
-<h3 class="subtitle"><em>Subtitle here if desired</em></h3>
-<h4 class="author"><em>Your name here</em></h4>
+<h1 class="title toc-ignore">Visualization of air quality in Buffalo and the effect factors</h1>
+<h4 class="author"><em>Xiaohan Rui</em></h4>
 
 </div>
 
 
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>My really awesome and complete introduction will go here.</p>
-<blockquote>
-<p>I know words. I have the best words. ~ Donald Trump</p>
-</blockquote>
+<p>Each people are concerned about air quality because we need to breathe all the time. And with the air quality index data, we can know how clean or polluted our outdoor or indoor air is, along with associated health effects that may be of concern. And these AQI data uses different colors to present levels which tell people when to take action to protect their health.</p>
+<p>However, many people like vivid images more than cold numbers. Based on this situation, I would like to make our statistic results more understandable and interesting for people to look and read. So calendar heatmap may be a good choice. People can see clearly from the heatmap how many unhealthy air days in the past months or years.</p>
+<p>Additionally, it is not enough to just know what is air quality. So learning the possible infuencing factors is also important. I want to use daily temperature and wind data from the GHCND data we used in Geo503 chapter 8 class. With the calendar heatmap, we can add in those possible influential data to find if direct relationships exsist. Also some statistics should be done to proof the relationships. If the results show that low AQI days may be effected by low wind speed and high daily temperature, it would be a powerful reminder to let people make preventive measures in such weather, such as wearing a mask.</p>
 </div>
 <div id="materials-and-methods" class="section level1">
 <h1>Materials and methods</h1>
-<p>Narrative and most code will go here. Describe what you are doing and show how to do it (with code).</p>
-<p>You can do bullets like this:</p>
-<ul>
-<li>The first most important thing</li>
-<li>The second most important thing</li>
-<li>The third most important thing</li>
-</ul>
-<p>You can do numbers like this:</p>
-<ol style="list-style-type: decimal">
-<li>The first most important thing</li>
-<li>The second most important thing</li>
-<li>The third most important thing</li>
+<p>Data: 1. AQI data is downloaded from EPA AIR data website: (You need to choose the geographic positons and the pollutant, such as PM2.5) Here is the website link: <a href="https://www.epa.gov/outdoor-air-quality-data" class="uri">https://www.epa.gov/outdoor-air-quality-data</a></p>
+<ol start="2" style="list-style-type: decimal">
+<li>GHCND variables: AWND: Average daily wind speed (meters per second or miles per hour as per user preference); TMAX: Maximum temperature; TMIN: Minimum temperature;</li>
 </ol>
-<p>See <a href="http://rmarkdown.rstudio.com/" class="uri">http://rmarkdown.rstudio.com/</a> for all the amazing things you can do.</p>
-<p>Here’s my first code chunk.</p>
-<pre class="r"><code>1+2</code></pre>
-<pre><code>## [1] 3</code></pre>
-<p>Load any required packages in a code chunk (you may need to install some packages):</p>
-<pre class="r"><code>library(dplyr)
+<p>Here’s my first code chunk. Load any required packages in a code chunk (you may need to install some packages):</p>
+<pre class="r"><code>library(plyr)
+library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:plyr&#39;:
+## 
+##     arrange, count, desc, failwith, id, mutate, rename, summarise,
+##     summarize</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(ggplot2)
+library(openair)
 library(ggplot2)
-library(maps)
-library(spocc)
-knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling</code></pre>
-<p>We are going to use the <code>occ()</code> function to download <em>occurrence</em> records for the American robin (<em>Turdus migratorius</em>) from the <a href="gbif.org">Global Biodiversity Information Facility</a>.</p>
-<p><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Turdus-migratorius-002.jpg" alt="alt text" width="200"> <small><small><small>Licensed under CC BY-SA 3.0 via <a href="https://commons.wikimedia.org/wiki/File:Turdus-migratorius-002.jpg#/media/File:Turdus-migratorius-002.jpg">Wikimedia Commons</a></small></small></small></p>
-<pre class="r"><code>## define which species to query
-sp=&#39;Turdus migratorius&#39;
+library(readxl)
+library(rnoaa)
+library(ggmap)
+library(openair)
+library(climdex.pcic)</code></pre>
+<pre><code>## Loading required package: PCICt</code></pre>
+<p>Load the PM2.5 air quality data in Buffalo in 2016:(some functions in the packages can only recognize “date” as the column name so we first need to change the name.)</p>
+<pre class="r"><code>mytable=read_excel(&quot;Data/Buffalo_PM2.5_AQI.xlsx&quot;)
+names(mytable)[1]&lt;-&quot;date&quot;</code></pre>
+<p>According to the method mentioned in reference[1], I set some parameters to make the plots below more easier and understandable to be shown:</p>
+<pre class="r"><code>dat=mytable
+dat$month&lt;-as.numeric(as.POSIXlt(dat$date)$mon+1)
+dat$monthf&lt;-factor(dat$month,levels=as.character(1:12),labels=c(&quot;Jan&quot;,&quot;Feb&quot;,&quot;Mar&quot;,&quot;Apr&quot;,&quot;May&quot;,&quot;Jun&quot;,&quot;Jul&quot;,&quot;Aug&quot;,&quot;Sep&quot;,&quot;Oct&quot;,&quot;Nov&quot;,&quot;Dec&quot;),ordered=TRUE)
+dat$weekday&lt;-as.POSIXlt(dat$date)$wday
+dat$weekdayf&lt;-factor(dat$weekday,levels=rev(0:6),labels=rev(c(&quot;Sun&quot;,&quot;Mon&quot;,&quot;Tue&quot;,&quot;Wed&quot;,&quot;Thu&quot;,&quot;Fri&quot;,&quot;Sat&quot;)),ordered=TRUE)
+dat$week &lt;- as.numeric(format(dat$date,&quot;%W&quot;))
+dat&lt;-ddply(dat,.(monthf),transform,monthweek=1+week-min(week))</code></pre>
+<p>This can take a few seconds to show the plot about Calendar Heatmap of PM2.5 air quality in Buffalo:(in the plot I filter days which have AQI more then 50, just because in Air Quality Index(AQI) leves, more than 50 but less than 100 means moderate, more than 100 but less than 150 means unhealthy for sensitive groups.)</p>
+<pre class="r"><code>ggplot(dat,aes(monthweek,weekdayf,fill=DAILY_AQI_VALUE))+
+  
+  geom_tile(colour=&#39;white&#39;) +
+  
+  facet_wrap(~monthf ,nrow=3) +
+  
+  scale_fill_gradient(space=&quot;Lab&quot;,limits=c(50, max(dat$DAILY_AQI_VALUE)),low=&quot;yellow&quot;, high=&quot;red&quot;) +
+  
+  labs(title=&quot;Buffalo PM2.5 AQI Calendar Heatmap in 2016&quot;,subtitle=&quot;AQI&gt;50&quot;,x=&quot;Week of Month&quot;,y=&quot;&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Then turns to influential factors:</p>
+<pre class="r"><code>datadir=&quot;data&quot;
+st = ghcnd_stations()
+st=dplyr::filter(st,element%in%c(&quot;TMAX&quot;,&quot;TMIN&quot;,&quot;AWND&quot;))
+coords=as.matrix(geocode(&quot;Buffalo, NY&quot;))</code></pre>
+<pre><code>## Information from URL : http://maps.googleapis.com/maps/api/geocode/json?address=Buffalo,%20NY&amp;sensor=false</code></pre>
+<pre class="r"><code>dplyr::filter(st,
+              grepl(&quot;BUFFALO&quot;,name)&amp;
+              between(latitude,coords[2]-1,coords[2]+1) &amp;
+              between(longitude,coords[1]-1,coords[1]+1)&amp;
+         element==&quot;TMAX&quot;)</code></pre>
+<pre><code>## # A tibble: 3 x 11
+##            id latitude longitude elevation state       name gsn_flag
+##         &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;
+## 1 USC00301010  42.8833  -78.8833    -999.9    NY    BUFFALO         
+## 2 USC00301018  42.9333  -78.9000     177.1    NY BUFFALO #2         
+## 3 USW00014733  42.9486  -78.7369     211.2    NY    BUFFALO         
+## # ... with 4 more variables: wmo_id &lt;chr&gt;, element &lt;chr&gt;,
+## #   first_year &lt;int&gt;, last_year &lt;int&gt;</code></pre>
+<pre class="r"><code>d=meteo_tidy_ghcnd(&quot;USW00014733&quot;,
+                   var = c(&quot;TMAX&quot;,&quot;TMIN&quot;,&quot;AWND&quot;),
+                   keep_flags=T)
+head(d)</code></pre>
+<pre><code>## # A tibble: 6 x 14
+##            id       date  awnd mflag_awnd mflag_tmax mflag_tmin qflag_awnd
+##         &lt;chr&gt;     &lt;date&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;
+## 1 USW00014733 1938-05-01  &lt;NA&gt;       &lt;NA&gt;                             &lt;NA&gt;
+## 2 USW00014733 1938-05-02  &lt;NA&gt;       &lt;NA&gt;                             &lt;NA&gt;
+## 3 USW00014733 1938-05-03  &lt;NA&gt;       &lt;NA&gt;                             &lt;NA&gt;
+## 4 USW00014733 1938-05-04  &lt;NA&gt;       &lt;NA&gt;                             &lt;NA&gt;
+## 5 USW00014733 1938-05-05  &lt;NA&gt;       &lt;NA&gt;                             &lt;NA&gt;
+## 6 USW00014733 1938-05-06  &lt;NA&gt;       &lt;NA&gt;                             &lt;NA&gt;
+## # ... with 7 more variables: qflag_tmax &lt;chr&gt;, qflag_tmin &lt;chr&gt;,
+## #   sflag_awnd &lt;chr&gt;, sflag_tmax &lt;chr&gt;, sflag_tmin &lt;chr&gt;, tmax &lt;dbl&gt;,
+## #   tmin &lt;dbl&gt;</code></pre>
+<p>Then convert correct units of temperatures (convert to degrees C)</p>
+<pre class="r"><code>d_filtered=d%&gt;%
+  mutate(tmax=ifelse(qflag_tmax!=&quot; &quot;|tmax==-9999,NA,tmax/10))%&gt;% 
+  mutate(tmin=ifelse(qflag_tmin!=&quot; &quot;|tmin==-9999,NA,tmin/10))%&gt;%  
+  mutate(awnd=ifelse(qflag_tmin!=&quot; &quot;|awnd==-9999,NA,awnd))%&gt;%  
+  arrange(date)</code></pre>
+<p>Then filter data in 2016 to match the 2016’s AQI data in Buffalo:</p>
+<pre class="r"><code>d_filtered_2016=filter(d_filtered,date&gt;as.Date(&quot;2016-01-01&quot;)&amp;date&lt;as.Date(&quot;2016-12-31&quot;))
 
-## run the query and convert to data.frame()
-d = occ(query=sp, from=&#39;ebird&#39;,limit = 100) %&gt;% occ2df()</code></pre>
-<p>This can take a few seconds.</p>
-<pre class="r"><code># Load coastline
-map=map_data(&quot;world&quot;)
+head(d_filtered_2016)</code></pre>
+<pre><code>## # A tibble: 6 x 14
+##            id       date  awnd mflag_awnd mflag_tmax mflag_tmin qflag_awnd
+##         &lt;chr&gt;     &lt;date&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;
+## 1 USW00014733 2016-01-02    67                                            
+## 2 USW00014733 2016-01-03    72                                            
+## 3 USW00014733 2016-01-04    42                                            
+## 4 USW00014733 2016-01-05    30                                            
+## 5 USW00014733 2016-01-06    39                                            
+## 6 USW00014733 2016-01-07    17                                            
+## # ... with 7 more variables: qflag_tmax &lt;chr&gt;, qflag_tmin &lt;chr&gt;,
+## #   sflag_awnd &lt;chr&gt;, sflag_tmax &lt;chr&gt;, sflag_tmin &lt;chr&gt;, tmax &lt;dbl&gt;,
+## #   tmin &lt;dbl&gt;</code></pre>
+<p>Plots the daily average wind speed data:</p>
+<pre class="r"><code>calendarPlot(d_filtered_2016, pollutant = &quot;awnd&quot;, year=2016)</code></pre>
+<pre><code>## Warning in bind_rows_(x, .id): Unequal factor levels: coercing to character</code></pre>
+<pre><code>## Warning in bind_rows_(x, .id): binding character and factor vector,
+## coercing into character vector
 
-ggplot(d,aes(x=longitude,y=latitude))+
-  geom_polygon(aes(x=long,y=lat,group=group),data=map)+
-  geom_point(col=&quot;red&quot;)+
-  coord_equal()</code></pre>
-<div class="figure">
-<img src="index_files/figure-html/unnamed-chunk-4-1.png" alt="Map illustrating the known occurrence locations" width="576" />
-<p class="caption">
-Map illustrating the known occurrence locations
-</p>
-</div>
+## Warning in bind_rows_(x, .id): binding character and factor vector,
+## coercing into character vector
+
+## Warning in bind_rows_(x, .id): binding character and factor vector,
+## coercing into character vector
+
+## Warning in bind_rows_(x, .id): binding character and factor vector,
+## coercing into character vector
+
+## Warning in bind_rows_(x, .id): binding character and factor vector,
+## coercing into character vector
+
+## Warning in bind_rows_(x, .id): binding character and factor vector,
+## coercing into character vector
+
+## Warning in bind_rows_(x, .id): binding character and factor vector,
+## coercing into character vector
+
+## Warning in bind_rows_(x, .id): binding character and factor vector,
+## coercing into character vector
+
+## Warning in bind_rows_(x, .id): binding character and factor vector,
+## coercing into character vector
+
+## Warning in bind_rows_(x, .id): binding character and factor vector,
+## coercing into character vector
+
+## Warning in bind_rows_(x, .id): binding character and factor vector,
+## coercing into character vector
+
+## Warning in bind_rows_(x, .id): binding character and factor vector,
+## coercing into character vector</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 </div>
 <div id="results" class="section level1">
 <h1>Results</h1>
 <p>Show tables, plots, etc. and describe them.</p>
-<pre class="r"><code>summary(d)</code></pre>
-<pre><code>## Warning in format.POSIXlt(as.POSIXlt(x), ...): unknown timezone &#39;default/
-## America/New_York&#39;</code></pre>
-<pre><code>##      name             longitude         latitude         prov          
-##  Length:100         Min.   :-93.30   Min.   :32.86   Length:100        
-##  Class :character   1st Qu.:-82.73   1st Qu.:39.40   Class :character  
-##  Mode  :character   Median :-76.81   Median :40.78   Mode  :character  
-##                     Mean   :-78.43   Mean   :40.54                     
-##                     3rd Qu.:-74.73   3rd Qu.:42.47                     
-##                     Max.   :-69.20   Max.   :45.77                     
-##       date                key           
-##  Min.   :2017-10-18   Length:100        
-##  1st Qu.:2017-10-18   Class :character  
-##  Median :2017-10-18   Mode  :character  
-##  Mean   :2017-10-18                     
-##  3rd Qu.:2017-10-18                     
-##  Max.   :2017-10-18</code></pre>
 </div>
 <div id="conclusions" class="section level1">
 <h1>Conclusions</h1>

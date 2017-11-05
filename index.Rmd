@@ -1,81 +1,119 @@
 ---
-title: "I have the best titles"
-author: Your name here
-subtitle: Subtitle here if desired
+title: "Visualization of air quality in Buffalo and the effect factors"
+author: Xiaohan Rui
+
 ---
 
 # Introduction
-My really awesome and complete introduction will go here.  
+Each people are concerned about air quality because we need to breathe all the time. And with the air quality index data, we can know how clean or polluted our outdoor or indoor air is, along with associated health effects that may be of concern. And these AQI data uses different colors to present levels which tell people when to take action to protect their health.
 
-> I know words.  I have the best words.  ~ Donald Trump
+However, many people like vivid images more than cold numbers. Based on this situation, I would like to make our statistic results more understandable and interesting for people to look and read. So calendar heatmap may be a good choice. People can see clearly from the heatmap how many unhealthy air days in the past months or years.
+
+Additionally, it is not enough to just know what is air quality. So learning the possible infuencing factors is also important. I want to use daily temperature and wind data from the GHCND data we used in Geo503 chapter 8 class. With the calendar heatmap, we can add in those possible influential data to find if direct relationships exsist. Also some statistics should be done to proof the relationships. If the results show that low AQI days may be effected by low wind speed and high daily temperature, it would be a powerful reminder to let people make preventive measures in such weather, such as wearing a mask.
 
 # Materials and methods
 
-Narrative and most code will go here.  Describe what you are doing and show how to do it (with code).
+Data:
+1. AQI data is downloaded from EPA AIR data website: (You need to choose the geographic positons and the pollutant, such as PM2.5) Here is the website link: https://www.epa.gov/outdoor-air-quality-data
 
-You can do bullets like this:
-
-* The first most important thing
-* The second most important thing
-* The third most important thing
-
-You can do numbers like this:
-
-1. The first most important thing
-2. The second most important thing
-3. The third most important thing
-
-See [http://rmarkdown.rstudio.com/](http://rmarkdown.rstudio.com/) for all the amazing things you can do.
+2. GHCND variables:
+AWND: Average daily wind speed (meters per second or miles per hour as per user preference);
+TMAX: Maximum temperature;
+TMIN: Minimum temperature;
 
 
-Here's my first code chunk.
+Here's my first code chunk. Load any required packages in a code chunk (you may need to install some packages):
 ```{r}
-1+2
-```
-
-Load any required packages in a code chunk (you may need to install some packages):
-
-```{r, message=F, warning=F}
+library(plyr)
 library(dplyr)
 library(ggplot2)
-library(maps)
-library(spocc)
-knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling
+library(openair)
+library(ggplot2)
+library(readxl)
+library(rnoaa)
+library(ggmap)
+library(openair)
+library(climdex.pcic)
 ```
 
 
-We are going to use the `occ()` function to download _occurrence_ records for the American robin (_Turdus migratorius_) from the [Global Biodiversity Information Facility](gbif.org).
-
-<img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Turdus-migratorius-002.jpg" alt="alt text" width="200">
-<small><small><small>Licensed under CC BY-SA 3.0 via [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Turdus-migratorius-002.jpg#/media/File:Turdus-migratorius-002.jpg)</small></small></small>
+Load the PM2.5 air quality data in Buffalo in 2016:(some functions in the packages can only recognize "date" as the column name so we first need to change the name.)
 
 ```{r, warning=F} 
-## define which species to query
-sp='Turdus migratorius'
-
-## run the query and convert to data.frame()
-d = occ(query=sp, from='ebird',limit = 100) %>% occ2df()
+mytable=read_excel("Data/Buffalo_PM2.5_AQI.xlsx")
+names(mytable)[1]<-"date"
 ```
-This can take a few seconds.
 
-```{r, fig.width=6, fig.height=3, fig.cap="Map illustrating the known occurrence locations"}
-# Load coastline
-map=map_data("world")
-
-ggplot(d,aes(x=longitude,y=latitude))+
-  geom_polygon(aes(x=long,y=lat,group=group),data=map)+
-  geom_point(col="red")+
-  coord_equal()
+According to the method mentioned in reference[1], I set some parameters to make the plots below more easier and understandable to be shown:
+```{r}
+dat=mytable
+dat$month<-as.numeric(as.POSIXlt(dat$date)$mon+1)
+dat$monthf<-factor(dat$month,levels=as.character(1:12),labels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"),ordered=TRUE)
+dat$weekday<-as.POSIXlt(dat$date)$wday
+dat$weekdayf<-factor(dat$weekday,levels=rev(0:6),labels=rev(c("Sun","Mon","Tue","Wed","Thu","Fri","Sat")),ordered=TRUE)
+dat$week <- as.numeric(format(dat$date,"%W"))
+dat<-ddply(dat,.(monthf),transform,monthweek=1+week-min(week))
 ```
+
+
+This can take a few seconds to show the plot about Calendar Heatmap of PM2.5 air quality in Buffalo:(in the plot I filter days which have AQI more then 50, just because in Air Quality Index(AQI) leves, more than 50 but less than 100 means moderate, more than 100 but less than 150 means unhealthy for sensitive groups.)
+```{r}
+ggplot(dat,aes(monthweek,weekdayf,fill=DAILY_AQI_VALUE))+
+  
+  geom_tile(colour='white') +
+  
+  facet_wrap(~monthf ,nrow=3) +
+  
+  scale_fill_gradient(space="Lab",limits=c(50, max(dat$DAILY_AQI_VALUE)),low="yellow", high="red") +
+  
+  labs(title="Buffalo PM2.5 AQI Calendar Heatmap in 2016",subtitle="AQI>50",x="Week of Month",y="")
+```
+
+
+Then turns to influential factors:
+```{r}
+datadir="data"
+st = ghcnd_stations()
+st=dplyr::filter(st,element%in%c("TMAX","TMIN","AWND"))
+coords=as.matrix(geocode("Buffalo, NY"))
+dplyr::filter(st,
+              grepl("BUFFALO",name)&
+              between(latitude,coords[2]-1,coords[2]+1) &
+              between(longitude,coords[1]-1,coords[1]+1)&
+         element=="TMAX")
+d=meteo_tidy_ghcnd("USW00014733",
+                   var = c("TMAX","TMIN","AWND"),
+                   keep_flags=T)
+head(d)
+```
+
+Then convert correct units of temperatures (convert to degrees C)
+```{r}
+d_filtered=d%>%
+  mutate(tmax=ifelse(qflag_tmax!=" "|tmax==-9999,NA,tmax/10))%>% 
+  mutate(tmin=ifelse(qflag_tmin!=" "|tmin==-9999,NA,tmin/10))%>%  
+  mutate(awnd=ifelse(qflag_tmin!=" "|awnd==-9999,NA,awnd))%>%  
+  arrange(date)
+```
+
+Then filter data in 2016 to match the 2016's AQI data in Buffalo:
+```{r}
+d_filtered_2016=filter(d_filtered,date>as.Date("2016-01-01")&date<as.Date("2016-12-31"))
+
+head(d_filtered_2016)
+```
+
+Plots the daily average wind speed data:
+```{r}
+calendarPlot(d_filtered_2016, pollutant = "awnd", year=2016)
+```
+
 
 
 # Results
 
 Show tables, plots, etc. and describe them.
 
-```{r}
-summary(d)
-```
 
 # Conclusions
 
