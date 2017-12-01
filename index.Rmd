@@ -1,5 +1,5 @@
 ---
-title: "Visualization of air quality in Buffalo and the effect factors"
+title: "Visualization of air quality in Buffalo and the effective factors"
 author: Xiaohan Rui
 
 ---
@@ -12,18 +12,20 @@ However, many people like vivid images more than cold numbers. Based on this sit
 Additionally, it is not enough to just know what is air quality. So learning the possible infuencing factors is also important. I want to use daily temperature and wind data from the GHCND data we used in Geo503 chapter 8 class. With the calendar heatmap, we can add in those possible influential data to find if direct relationships exsist. Also some statistics should be done to proof the relationships. If the results show that low AQI days may be effected by low wind speed and high daily temperature, it would be a powerful reminder to let people make preventive measures in such weather, such as wearing a mask.
 
 # Materials and methods
+1. Data:
+ 
+AQI data is downloaded from EPA AIR data website: (You need to choose the geographic positons and the pollutant, such as PM2.5 used in this project).
+Here is the website link: https://www.epa.gov/outdoor-air-quality-data
 
-Data:
-1. AQI data is downloaded from EPA AIR data website: (You need to choose the geographic positons and the pollutant, such as PM2.5) Here is the website link: https://www.epa.gov/outdoor-air-quality-data
-
-2. GHCND variables:
+GHCND variables:
 AWND: Average daily wind speed (meters per second or miles per hour as per user preference);
 TMAX: Maximum temperature;
 TMIN: Minimum temperature;
 
 
+2. Method and Code:
 Here's my first code chunk. Load any required packages in a code chunk (you may need to install some packages):
-```{r}
+```{r, warning=FALSE, message=FALSE}
 library(plyr)
 library(dplyr)
 library(ggplot2)
@@ -38,13 +40,13 @@ library(climdex.pcic)
 
 
 Load the PM2.5 air quality data in Buffalo in 2016:(some functions in the packages can only recognize "date" as the column name so we first need to change the name.)
-
 ```{r, warning=F} 
 mytable=read_excel("Data/Buffalo_PM2.5_AQI.xlsx")
 names(mytable)[1]<-"date"
 ```
 
-According to the method mentioned in reference[1], I set some parameters to make the plots below more easier and understandable to be shown:
+
+According to the method mentioned in reference[1], I set some parameters to extract daily and monthly factors to make the heatmap plots below more easier and understandable to be shown:
 ```{r}
 dat=mytable
 dat$month<-as.numeric(as.POSIXlt(dat$date)$mon+1)
@@ -56,22 +58,8 @@ dat<-ddply(dat,.(monthf),transform,monthweek=1+week-min(week))
 ```
 
 
-This can take a few seconds to show the plot about Calendar Heatmap of PM2.5 air quality in Buffalo:(in the plot I filter days which have AQI more then 50, just because in Air Quality Index(AQI) leves, more than 50 but less than 100 means moderate, more than 100 but less than 150 means unhealthy for sensitive groups.)
-```{r}
-ggplot(dat,aes(monthweek,weekdayf,fill=DAILY_AQI_VALUE))+
-  
-  geom_tile(colour='white') +
-  
-  facet_wrap(~monthf ,nrow=3) +
-  
-  scale_fill_gradient(space="Lab",limits=c(50, max(dat$DAILY_AQI_VALUE)),low="yellow", high="red") +
-  
-  labs(title="Buffalo PM2.5 AQI Calendar Heatmap in 2016",subtitle="AQI>50",x="Week of Month",y="")
-```
-
-
-Then turns to influential factors:
-```{r}
+Then turns to influential factors from GHCND data: this contains daily maximun temperatures, minimum temperatures and average wind speed data.
+```{r, warning=FALSE}
 datadir="data"
 st = ghcnd_stations()
 st=dplyr::filter(st,element%in%c("TMAX","TMIN","AWND"))
@@ -84,8 +72,8 @@ dplyr::filter(st,
 d=meteo_tidy_ghcnd("USW00014733",
                    var = c("TMAX","TMIN","AWND"),
                    keep_flags=T)
-head(d)
 ```
+
 
 Then convert correct units of temperatures (convert to degrees C)
 ```{r}
@@ -96,28 +84,87 @@ d_filtered=d%>%
   arrange(date)
 ```
 
-Then filter data in 2016 to match the 2016's AQI data in Buffalo:
-```{r}
-d_filtered_2016=filter(d_filtered,date>as.Date("2016-01-01")&date<as.Date("2016-12-31"))
+
+Finally filter data in 2016 to match the 2016's AQI data in Buffalo:
+```{r,warning=FALSE}
+library(DT)
+d_filtered_2016=filter(d_filtered,date>=as.Date("2016-01-01")&date<=as.Date("2016-12-31"))
 
 head(d_filtered_2016)
 ```
 
-Plots the daily average wind speed data:
-```{r}
-calendarPlot(d_filtered_2016, pollutant = "awnd", year=2016)
-```
-
-
 
 # Results
 
-Show tables, plots, etc. and describe them.
+1. Comparisons between two visualization methods:
+
+Calendar heatmap:
+This can take a few seconds to show the plot about Calendar Heatmap of PM2.5 air quality in Buffalo:(in the plot I filter days which have AQI more then 50, just because in Air Quality Index(AQI) leves, more than 50 but less than 100 means moderate, more than 100 but less than 150 means unhealthy for sensitive groups.)
+
+```{r, warning=FALSE, echo=FALSE}
+ggplot(dat,aes(monthweek, weekdayf,fill=DAILY_AQI_VALUE))+
+  
+  geom_tile(colour='white') +
+  
+  facet_wrap(~monthf ,nrow=3) +
+  
+  scale_fill_gradient(space="Lab",limits=c(0, max(dat$DAILY_AQI_VALUE)),low="yellow", high=" red") +
+  
+  labs(title="Buffalo PM2.5 AQI Calendar Heatmap in 2016",x="Week of month",y="")
+```
+
+Dygraphics:
+```{r, warning=FALSE}
+library(dygraphs)
+library(zoo)
+library(xts)
+library(htmlwidgets)
+library(widgetframe)
+dt=xts(dat$DAILY_AQI_VALUE,order.by=dat$date)
+
+dygraph(dt, main = "Daily AQI value in Buffalo, NY") %>% 
+  dyRangeSelector(dateWindow = c("2016-01-01", "2016-12-31"))%>%
+  frameWidget(height =300)
+```
+
+
+Through the two graphics above, it is clearly to find that calendar heatmap will be better for readers to get more inofrmation at first impression, such as how many unhealthy days in 2016? or which days are unhealthy days? In dygraphics people can see the trend of the changing about AQI values but it does not find daily data easily. 
+
+
+2. AQI values and the influential factors:
+
+Plots the daily average wind speed data:
+```{r, warning=FALSE}
+calendarPlot(d_filtered_2016, pollutant = "awnd", year=2016)
+```
+
+Plots the daily maximum temperatures:
+```{r, warning=FALSE}
+calendarPlot(d_filtered_2016, pollutant = "tmax", year=2016)
+```
+
+According to plots above, we can reach the preliminary conclusion that high temperature may be correlative with unhealthy air quality. However, this hypothsis need to be proved so we do Pearson Correlation:
+```{r}
+newdat= d_filtered_2016 %>% select(id, date, awnd, tmax,tmin)
+newair=mytable %>% select(date, DAILY_AQI_VALUE)
+newair$date=as.Date(as.POSIXct(newair$date))
+unitdat=full_join(newdat, newair, by="date")
+unitdat$awnd=as.numeric(as.character(unitdat$awnd))
+cor.test(unitdat$awnd,unitdat$DAILY_AQI_VALUE,method="pearson")
+cor.test(unitdat$tmax,unitdat$DAILY_AQI_VALUE,method="pearson")
+cor.test(unitdat$tmin,unitdat$DAILY_AQI_VALUE,method="pearson")
+```
+
+In Pearson correlation method, the results mean there are high correlations between x and y when p-value is less than 0.05 and the absolute value of sample estimates(r value) is higher. Based on this theory, the three results above show that only high temperatures have correlation with daily AQI values. So finally we get the conclusion that the air quality is worse when temperature rises.
 
 
 # Conclusions
+Based on the results, we finlly get those conclusions: 1) Calendar heatmap is better than other analysis graphics in some daily applications. It is more clearly and friendly to find specfic days and to do statistics about number of days. 2) Due to results of Pearson correlation, comparing to wind speed and low temperature, high temperature is the only factor that has correlation with daily AQI values. So this means that when high temperature comes, there may be more unhealthy-air-quality days. According to this conclusion, people can do some useful and helpful solutions such as wearing a mask in high-temperature days to prevent air pollution.
 
-What have you learned?  Are there any broader implications?
+Additionally, the data used in this project is limited so that there are errors exsisting obviously. I think one-year data is not enough and air quality problem is very complex so there may be other effective factors. Futher study should be done to prove the correlations.
+
 
 # References
+[1] http://margintale.blogspot.com/2012/04/ggplot2-time-series-heatmaps.html
 
+[2] http://www.r-graph-gallery.com/284-calendar-heatmap/

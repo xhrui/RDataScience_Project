@@ -12,7 +12,7 @@
 <meta name="author" content="Xiaohan Rui" />
 
 
-<title>Visualization of air quality in Buffalo and the effect factors</title>
+<title>Visualization of air quality in Buffalo and the effective factors</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,6 +26,10 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<script src="site_libs/htmlwidgets-0.9/htmlwidgets.js"></script>
+<script src="site_libs/blazy-1.8.2/blazy.min.js"></script>
+<script src="site_libs/pymjs-1.3.2/pym.v1.js"></script>
+<script src="site_libs/widgetframe-binding-0.3.0/widgetframe.js"></script>
 <link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
 
 <style type="text/css">code{white-space: pre;}</style>
@@ -296,7 +300,7 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Visualization of air quality in Buffalo and the effect factors</h1>
+<h1 class="title toc-ignore">Visualization of air quality in Buffalo and the effective factors</h1>
 <h4 class="author"><em>Xiaohan Rui</em></h4>
 
 </div>
@@ -310,26 +314,17 @@ div.tocify {
 </div>
 <div id="materials-and-methods" class="section level1">
 <h1>Materials and methods</h1>
-<p>Data: 1. AQI data is downloaded from EPA AIR data website: (You need to choose the geographic positons and the pollutant, such as PM2.5) Here is the website link: <a href="https://www.epa.gov/outdoor-air-quality-data" class="uri">https://www.epa.gov/outdoor-air-quality-data</a></p>
-<ol start="2" style="list-style-type: decimal">
-<li>GHCND variables: AWND: Average daily wind speed (meters per second or miles per hour as per user preference); TMAX: Maximum temperature; TMIN: Minimum temperature;</li>
+<ol style="list-style-type: decimal">
+<li>Data:</li>
 </ol>
-<p>Here’s my first code chunk. Load any required packages in a code chunk (you may need to install some packages):</p>
+<p>AQI data is downloaded from EPA AIR data website: (You need to choose the geographic positons and the pollutant, such as PM2.5 used in this project). Here is the website link: <a href="https://www.epa.gov/outdoor-air-quality-data" class="uri">https://www.epa.gov/outdoor-air-quality-data</a></p>
+<p>GHCND variables: AWND: Average daily wind speed (meters per second or miles per hour as per user preference); TMAX: Maximum temperature; TMIN: Minimum temperature;</p>
+<ol start="2" style="list-style-type: decimal">
+<li>Method and Code: Here’s my first code chunk. Load any required packages in a code chunk (you may need to install some packages):</li>
+</ol>
 <pre class="r"><code>library(plyr)
-library(dplyr)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;dplyr&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:plyr&#39;:
-## 
-##     arrange, count, desc, failwith, id, mutate, rename, summarise,
-##     summarize</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code>library(ggplot2)
+library(dplyr)
+library(ggplot2)
 library(openair)
 library(ggplot2)
 library(readxl)
@@ -337,11 +332,10 @@ library(rnoaa)
 library(ggmap)
 library(openair)
 library(climdex.pcic)</code></pre>
-<pre><code>## Loading required package: PCICt</code></pre>
 <p>Load the PM2.5 air quality data in Buffalo in 2016:(some functions in the packages can only recognize “date” as the column name so we first need to change the name.)</p>
 <pre class="r"><code>mytable=read_excel(&quot;Data/Buffalo_PM2.5_AQI.xlsx&quot;)
 names(mytable)[1]&lt;-&quot;date&quot;</code></pre>
-<p>According to the method mentioned in reference[1], I set some parameters to make the plots below more easier and understandable to be shown:</p>
+<p>According to the method mentioned in reference[1], I set some parameters to extract daily and monthly factors to make the heatmap plots below more easier and understandable to be shown:</p>
 <pre class="r"><code>dat=mytable
 dat$month&lt;-as.numeric(as.POSIXlt(dat$date)$mon+1)
 dat$monthf&lt;-factor(dat$month,levels=as.character(1:12),labels=c(&quot;Jan&quot;,&quot;Feb&quot;,&quot;Mar&quot;,&quot;Apr&quot;,&quot;May&quot;,&quot;Jun&quot;,&quot;Jul&quot;,&quot;Aug&quot;,&quot;Sep&quot;,&quot;Oct&quot;,&quot;Nov&quot;,&quot;Dec&quot;),ordered=TRUE)
@@ -349,18 +343,7 @@ dat$weekday&lt;-as.POSIXlt(dat$date)$wday
 dat$weekdayf&lt;-factor(dat$weekday,levels=rev(0:6),labels=rev(c(&quot;Sun&quot;,&quot;Mon&quot;,&quot;Tue&quot;,&quot;Wed&quot;,&quot;Thu&quot;,&quot;Fri&quot;,&quot;Sat&quot;)),ordered=TRUE)
 dat$week &lt;- as.numeric(format(dat$date,&quot;%W&quot;))
 dat&lt;-ddply(dat,.(monthf),transform,monthweek=1+week-min(week))</code></pre>
-<p>This can take a few seconds to show the plot about Calendar Heatmap of PM2.5 air quality in Buffalo:(in the plot I filter days which have AQI more then 50, just because in Air Quality Index(AQI) leves, more than 50 but less than 100 means moderate, more than 100 but less than 150 means unhealthy for sensitive groups.)</p>
-<pre class="r"><code>ggplot(dat,aes(monthweek,weekdayf,fill=DAILY_AQI_VALUE))+
-  
-  geom_tile(colour=&#39;white&#39;) +
-  
-  facet_wrap(~monthf ,nrow=3) +
-  
-  scale_fill_gradient(space=&quot;Lab&quot;,limits=c(50, max(dat$DAILY_AQI_VALUE)),low=&quot;yellow&quot;, high=&quot;red&quot;) +
-  
-  labs(title=&quot;Buffalo PM2.5 AQI Calendar Heatmap in 2016&quot;,subtitle=&quot;AQI&gt;50&quot;,x=&quot;Week of Month&quot;,y=&quot;&quot;)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
-<p>Then turns to influential factors:</p>
+<p>Then turns to influential factors from GHCND data: this contains daily maximun temperatures, minimum temperatures and average wind speed data.</p>
 <pre class="r"><code>datadir=&quot;data&quot;
 st = ghcnd_stations()
 st=dplyr::filter(st,element%in%c(&quot;TMAX&quot;,&quot;TMIN&quot;,&quot;AWND&quot;))
@@ -381,92 +364,124 @@ coords=as.matrix(geocode(&quot;Buffalo, NY&quot;))</code></pre>
 ## #   first_year &lt;int&gt;, last_year &lt;int&gt;</code></pre>
 <pre class="r"><code>d=meteo_tidy_ghcnd(&quot;USW00014733&quot;,
                    var = c(&quot;TMAX&quot;,&quot;TMIN&quot;,&quot;AWND&quot;),
-                   keep_flags=T)
-head(d)</code></pre>
-<pre><code>## # A tibble: 6 x 14
-##            id       date  awnd mflag_awnd mflag_tmax mflag_tmin qflag_awnd
-##         &lt;chr&gt;     &lt;date&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;
-## 1 USW00014733 1938-05-01  &lt;NA&gt;       &lt;NA&gt;                             &lt;NA&gt;
-## 2 USW00014733 1938-05-02  &lt;NA&gt;       &lt;NA&gt;                             &lt;NA&gt;
-## 3 USW00014733 1938-05-03  &lt;NA&gt;       &lt;NA&gt;                             &lt;NA&gt;
-## 4 USW00014733 1938-05-04  &lt;NA&gt;       &lt;NA&gt;                             &lt;NA&gt;
-## 5 USW00014733 1938-05-05  &lt;NA&gt;       &lt;NA&gt;                             &lt;NA&gt;
-## 6 USW00014733 1938-05-06  &lt;NA&gt;       &lt;NA&gt;                             &lt;NA&gt;
-## # ... with 7 more variables: qflag_tmax &lt;chr&gt;, qflag_tmin &lt;chr&gt;,
-## #   sflag_awnd &lt;chr&gt;, sflag_tmax &lt;chr&gt;, sflag_tmin &lt;chr&gt;, tmax &lt;dbl&gt;,
-## #   tmin &lt;dbl&gt;</code></pre>
+                   keep_flags=T)</code></pre>
 <p>Then convert correct units of temperatures (convert to degrees C)</p>
 <pre class="r"><code>d_filtered=d%&gt;%
   mutate(tmax=ifelse(qflag_tmax!=&quot; &quot;|tmax==-9999,NA,tmax/10))%&gt;% 
   mutate(tmin=ifelse(qflag_tmin!=&quot; &quot;|tmin==-9999,NA,tmin/10))%&gt;%  
   mutate(awnd=ifelse(qflag_tmin!=&quot; &quot;|awnd==-9999,NA,awnd))%&gt;%  
   arrange(date)</code></pre>
-<p>Then filter data in 2016 to match the 2016’s AQI data in Buffalo:</p>
-<pre class="r"><code>d_filtered_2016=filter(d_filtered,date&gt;as.Date(&quot;2016-01-01&quot;)&amp;date&lt;as.Date(&quot;2016-12-31&quot;))
+<p>Finally filter data in 2016 to match the 2016’s AQI data in Buffalo:</p>
+<pre class="r"><code>library(DT)
+d_filtered_2016=filter(d_filtered,date&gt;=as.Date(&quot;2016-01-01&quot;)&amp;date&lt;=as.Date(&quot;2016-12-31&quot;))
 
 head(d_filtered_2016)</code></pre>
 <pre><code>## # A tibble: 6 x 14
 ##            id       date  awnd mflag_awnd mflag_tmax mflag_tmin qflag_awnd
 ##         &lt;chr&gt;     &lt;date&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;
-## 1 USW00014733 2016-01-02    67                                            
-## 2 USW00014733 2016-01-03    72                                            
-## 3 USW00014733 2016-01-04    42                                            
-## 4 USW00014733 2016-01-05    30                                            
-## 5 USW00014733 2016-01-06    39                                            
-## 6 USW00014733 2016-01-07    17                                            
+## 1 USW00014733 2016-01-01    68                                            
+## 2 USW00014733 2016-01-02    67                                            
+## 3 USW00014733 2016-01-03    72                                            
+## 4 USW00014733 2016-01-04    42                                            
+## 5 USW00014733 2016-01-05    30                                            
+## 6 USW00014733 2016-01-06    39                                            
 ## # ... with 7 more variables: qflag_tmax &lt;chr&gt;, qflag_tmin &lt;chr&gt;,
 ## #   sflag_awnd &lt;chr&gt;, sflag_tmax &lt;chr&gt;, sflag_tmin &lt;chr&gt;, tmax &lt;dbl&gt;,
 ## #   tmin &lt;dbl&gt;</code></pre>
-<p>Plots the daily average wind speed data:</p>
-<pre class="r"><code>calendarPlot(d_filtered_2016, pollutant = &quot;awnd&quot;, year=2016)</code></pre>
-<pre><code>## Warning in bind_rows_(x, .id): Unequal factor levels: coercing to character</code></pre>
-<pre><code>## Warning in bind_rows_(x, .id): binding character and factor vector,
-## coercing into character vector
-
-## Warning in bind_rows_(x, .id): binding character and factor vector,
-## coercing into character vector
-
-## Warning in bind_rows_(x, .id): binding character and factor vector,
-## coercing into character vector
-
-## Warning in bind_rows_(x, .id): binding character and factor vector,
-## coercing into character vector
-
-## Warning in bind_rows_(x, .id): binding character and factor vector,
-## coercing into character vector
-
-## Warning in bind_rows_(x, .id): binding character and factor vector,
-## coercing into character vector
-
-## Warning in bind_rows_(x, .id): binding character and factor vector,
-## coercing into character vector
-
-## Warning in bind_rows_(x, .id): binding character and factor vector,
-## coercing into character vector
-
-## Warning in bind_rows_(x, .id): binding character and factor vector,
-## coercing into character vector
-
-## Warning in bind_rows_(x, .id): binding character and factor vector,
-## coercing into character vector
-
-## Warning in bind_rows_(x, .id): binding character and factor vector,
-## coercing into character vector
-
-## Warning in bind_rows_(x, .id): binding character and factor vector,
-## coercing into character vector</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 </div>
 <div id="results" class="section level1">
 <h1>Results</h1>
-<p>Show tables, plots, etc. and describe them.</p>
+<ol style="list-style-type: decimal">
+<li>Comparisons between two visualization methods:</li>
+</ol>
+<p>Calendar heatmap: This can take a few seconds to show the plot about Calendar Heatmap of PM2.5 air quality in Buffalo:(in the plot I filter days which have AQI more then 50, just because in Air Quality Index(AQI) leves, more than 50 but less than 100 means moderate, more than 100 but less than 150 means unhealthy for sensitive groups.)</p>
+<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>Dygraphics:</p>
+<pre class="r"><code>library(dygraphs)
+library(zoo)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;zoo&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     as.Date, as.Date.numeric</code></pre>
+<pre class="r"><code>library(xts)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;xts&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:dplyr&#39;:
+## 
+##     first, last</code></pre>
+<pre class="r"><code>library(htmlwidgets)
+library(widgetframe)
+dt=xts(dat$DAILY_AQI_VALUE,order.by=dat$date)
+
+dygraph(dt, main = &quot;Daily AQI value in Buffalo, NY&quot;) %&gt;% 
+  dyRangeSelector(dateWindow = c(&quot;2016-01-01&quot;, &quot;2016-12-31&quot;))%&gt;%
+  frameWidget(height =300)</code></pre>
+<div id="htmlwidget-70b52863db787f8cd9b8" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-70b52863db787f8cd9b8">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-8.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<p>Through the two graphics above, it is clearly to find that calendar heatmap will be better for readers to get more inofrmation at first impression, such as how many unhealthy days in 2016? or which days are unhealthy days? In dygraphics people can see the trend of the changing about AQI values but it does not find daily data easily.</p>
+<ol start="2" style="list-style-type: decimal">
+<li>AQI values and the influential factors:</li>
+</ol>
+<p>Plots the daily average wind speed data:</p>
+<pre class="r"><code>calendarPlot(d_filtered_2016, pollutant = &quot;awnd&quot;, year=2016)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>Plots the daily maximum temperatures:</p>
+<pre class="r"><code>calendarPlot(d_filtered_2016, pollutant = &quot;tmax&quot;, year=2016)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>According to plots above, we can reach the preliminary conclusion that high temperature may be correlative with unhealthy air quality. However, this hypothsis need to be proved so we do Pearson Correlation:</p>
+<pre class="r"><code>newdat= d_filtered_2016 %&gt;% select(id, date, awnd, tmax,tmin)
+newair=mytable %&gt;% select(date, DAILY_AQI_VALUE)
+newair$date=as.Date(as.POSIXct(newair$date))
+unitdat=full_join(newdat, newair, by=&quot;date&quot;)
+unitdat$awnd=as.numeric(as.character(unitdat$awnd))
+cor.test(unitdat$awnd,unitdat$DAILY_AQI_VALUE,method=&quot;pearson&quot;)</code></pre>
+<pre><code>## 
+##  Pearson&#39;s product-moment correlation
+## 
+## data:  unitdat$awnd and unitdat$DAILY_AQI_VALUE
+## t = -1.2634, df = 352, p-value = 0.2073
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  -0.17022796  0.03731154
+## sample estimates:
+##         cor 
+## -0.06718491</code></pre>
+<pre class="r"><code>cor.test(unitdat$tmax,unitdat$DAILY_AQI_VALUE,method=&quot;pearson&quot;)</code></pre>
+<pre><code>## 
+##  Pearson&#39;s product-moment correlation
+## 
+## data:  unitdat$tmax and unitdat$DAILY_AQI_VALUE
+## t = 1.9963, df = 352, p-value = 0.04667
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  0.001590829 0.207752301
+## sample estimates:
+##       cor 
+## 0.1058084</code></pre>
+<pre class="r"><code>cor.test(unitdat$tmin,unitdat$DAILY_AQI_VALUE,method=&quot;pearson&quot;)</code></pre>
+<pre><code>## 
+##  Pearson&#39;s product-moment correlation
+## 
+## data:  unitdat$tmin and unitdat$DAILY_AQI_VALUE
+## t = 0.47788, df = 352, p-value = 0.633
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  -0.07898188  0.12935473
+## sample estimates:
+##       cor 
+## 0.0254629</code></pre>
+<p>In Pearson correlation method, the results mean there are high correlations between x and y when p-value is less than 0.05 and the absolute value of sample estimates(r value) is higher. Based on this theory, the three results above show that only high temperatures have correlation with daily AQI values. So finally we get the conclusion that the air quality is worse when temperature rises.</p>
 </div>
 <div id="conclusions" class="section level1">
 <h1>Conclusions</h1>
-<p>What have you learned? Are there any broader implications?</p>
+<p>Based on the results, we finlly get those conclusions: 1) Calendar heatmap is better than other analysis graphics in some daily applications. It is more clearly and friendly to find specfic days and to do statistics about number of days. 2) Due to results of Pearson correlation, comparing to wind speed and low temperature, high temperature is the only factor that has correlation with daily AQI values. So this means that when high temperature comes, there may be more unhealthy-air-quality days. According to this conclusion, people can do some useful and helpful solutions such as wearing a mask in high-temperature days to prevent air pollution.</p>
+<p>Additionally, the data used in this project is limited so that there are errors exsisting obviously. I think one-year data is not enough and air quality problem is very complex so there may be other effective factors. Futher study should be done to prove the correlations.</p>
 </div>
 <div id="references" class="section level1">
 <h1>References</h1>
+<p>[1] <a href="http://margintale.blogspot.com/2012/04/ggplot2-time-series-heatmaps.html" class="uri">http://margintale.blogspot.com/2012/04/ggplot2-time-series-heatmaps.html</a></p>
+<p>[2] <a href="http://www.r-graph-gallery.com/284-calendar-heatmap/" class="uri">http://www.r-graph-gallery.com/284-calendar-heatmap/</a></p>
 </div>
 
 <!-- give the footer some space -->
