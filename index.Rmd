@@ -1,7 +1,9 @@
 ---
 title: "Visualization of air quality in Buffalo and the effective factors"
 author: Xiaohan Rui
-
+output:
+    html_document:
+        code_folding: hide
 ---
 
 # Introduction

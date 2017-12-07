@@ -24,6 +24,7 @@
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-1.1/highlight.js"></script>
 <script src="site_libs/htmlwidgets-0.9/htmlwidgets.js"></script>
@@ -167,6 +168,14 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
 
 
 
@@ -298,6 +307,14 @@ div.tocify {
 
 <div class="fluid-row" id="header">
 
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
 
 
 <h1 class="title toc-ignore">Visualization of air quality in Buffalo and the effective factors</h1>
@@ -364,10 +381,14 @@ dplyr::filter(st,
               between(latitude,coords[2]-1,coords[2]+1) &amp;
               between(longitude,coords[1]-1,coords[1]+1)&amp;
          element==&quot;TMAX&quot;)</code></pre>
-<pre><code>## # A tibble: 0 x 11
-## # ... with 11 variables: id &lt;chr&gt;, latitude &lt;dbl&gt;, longitude &lt;dbl&gt;,
-## #   elevation &lt;dbl&gt;, state &lt;chr&gt;, name &lt;chr&gt;, gsn_flag &lt;chr&gt;,
-## #   wmo_id &lt;chr&gt;, element &lt;chr&gt;, first_year &lt;int&gt;, last_year &lt;int&gt;</code></pre>
+<pre><code>## # A tibble: 3 x 11
+##            id latitude longitude elevation state       name gsn_flag
+##         &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;
+## 1 USC00301010  42.8833  -78.8833    -999.9    NY    BUFFALO         
+## 2 USC00301018  42.9333  -78.9000     177.1    NY BUFFALO #2         
+## 3 USW00014733  42.9486  -78.7369     211.2    NY    BUFFALO         
+## # ... with 4 more variables: wmo_id &lt;chr&gt;, element &lt;chr&gt;,
+## #   first_year &lt;int&gt;, last_year &lt;int&gt;</code></pre>
 <pre class="r"><code>d=meteo_tidy_ghcnd(&quot;USW00014733&quot;,
                    var = c(&quot;TMAX&quot;,&quot;TMIN&quot;,&quot;AWND&quot;),
                    keep_flags=T)</code></pre>
@@ -381,8 +402,8 @@ dplyr::filter(st,
 <pre class="r"><code>d_filtered_2016=filter(d_filtered,date&gt;=as.Date(&quot;2016-01-01&quot;)&amp;date&lt;=as.Date(&quot;2016-12-31&quot;))
 
 datatable(d_filtered_2016, options = list(pageLength=5)) %&gt;% frameWidget(height=400)</code></pre>
-<div id="htmlwidget-1697cb3fcae53ef7baa1" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-1697cb3fcae53ef7baa1">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-6.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-02938cebbcb45fa2a249" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-02938cebbcb45fa2a249">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-6.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </div>
@@ -412,8 +433,8 @@ datatable(d_filtered_2016, options = list(pageLength=5)) %&gt;% frameWidget(heig
 dygraph(dt, main = &quot;Daily AQI value in Buffalo, NY&quot;) %&gt;% 
   dyRangeSelector(dateWindow = c(&quot;2016-01-01&quot;, &quot;2016-12-31&quot;))%&gt;%
   frameWidget(height =300)</code></pre>
-<div id="htmlwidget-92343cd30be65c006667" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-92343cd30be65c006667">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-8.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-caa646112dd8049a7e4c" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-caa646112dd8049a7e4c">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-8.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 <p>Through the two graphics above, it is clearly to find that calendar heatmap is better for readers to get more inofrmation, such as how many unhealthy days in 2016? or which days are unhealthy days? In dygraphics people can see the trend of the changing about AQI values but it does not provide with daily data visually.</p>
 </div>
 </div>
