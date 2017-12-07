@@ -24,6 +24,7 @@
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-1.1/highlight.js"></script>
 <script src="site_libs/htmlwidgets-0.9/htmlwidgets.js"></script>
@@ -167,6 +168,14 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
 
 
 
@@ -298,6 +307,14 @@ div.tocify {
 
 <div class="fluid-row" id="header">
 
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
 
 
 <h1 class="title toc-ignore">Visualization of air quality in Buffalo and the effective factors</h1>
@@ -385,8 +402,8 @@ dplyr::filter(st,
 <pre class="r"><code>d_filtered_2016=filter(d_filtered,date&gt;=as.Date(&quot;2016-01-01&quot;)&amp;date&lt;=as.Date(&quot;2016-12-31&quot;))
 
 datatable(d_filtered_2016, options = list(pageLength=5)) %&gt;% frameWidget(height=400)</code></pre>
-<div id="htmlwidget-824fe1f61ae1c6540fe8" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-824fe1f61ae1c6540fe8">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-6.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-ebf9d947166fe3534267" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-ebf9d947166fe3534267">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-6.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </div>
@@ -407,35 +424,24 @@ datatable(d_filtered_2016, options = list(pageLength=5)) %&gt;% frameWidget(heig
 dygraph(dt, main = &quot;Daily AQI value in Buffalo, NY&quot;) %&gt;% 
   dyRangeSelector(dateWindow = c(&quot;2016-01-01&quot;, &quot;2016-12-31&quot;))%&gt;%
   frameWidget(height =300)</code></pre>
-<div id="htmlwidget-b85c1ccdaf70f9ab1c99" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-b85c1ccdaf70f9ab1c99">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-8.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-e75cf5ec8d15285ef338" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-e75cf5ec8d15285ef338">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-8.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 <p>Through the two graphics above, it is clearly to find that calendar heatmap is better for readers to get more inofrmation, such as how many unhealthy days in 2016? or which days are unhealthy days? In dygraphics people can see the trend of the changing about AQI values but it does not provide with daily data visually.</p>
 </div>
 </div>
 <div id="aqi-values-and-the-influential-factors" class="section level4">
 <h4>AQI values and the influential factors</h4>
 <p>In this project, we choose three effective factors which are average daily wind speed, daily maximum temperatures and daily minimum temperatures. So calendarplot function is used to show different levels of each factors in each day so that we can see changes in every day.</p>
-</div>
-</div>
-<div id="section" class="section level1 tabset">
-<h1></h1>
-<div id="awnd" class="section level2">
-<h2>Awnd</h2>
 <p>Plots the average daily wind speed:</p>
 <pre class="r"><code>calendarPlot(d_filtered_2016, pollutant = &quot;awnd&quot;, year=2016, main =  &quot;Average daily wind speed in Buffalo (2016)&quot;, cols = &quot;heat&quot;)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
-</div>
-<div id="tmax" class="section level2">
-<h2>Tmax</h2>
 <p>Plots the daily maximum temperatures:</p>
 <pre class="r"><code>calendarPlot(d_filtered_2016, pollutant = &quot;tmax&quot;, year=2016, main = &quot;Daily maximum temperatures in Buffalo (2016)&quot;)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
-</div>
-<div id="tmin" class="section level2">
-<h2>Tmin</h2>
 <p>Plots the daily minimum temperatures:</p>
 <pre class="r"><code>calendarPlot(d_filtered_2016, pollutant = &quot;tmin&quot;, year=2016, main = &quot;Daily minimum temperatures in Buffalo (2016)&quot;)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-11-1.png" width="672" /> ### End</p>
+<p><img src="index_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
 <div id="correlation-analysis" class="section level4">
 <h4>Correlation Analysis</h4>
 <p>According to figures above, we can reach the preliminary conclusion that high temperature may be correlative with unhealthy air quality. However, this hypothsis need to be proved so we do Pearson Correlations for each effective factors:</p>
@@ -481,7 +487,6 @@ cor.test(unitdat$awnd,unitdat$DAILY_AQI_VALUE,method=&quot;pearson&quot;)</code>
 ##       cor 
 ## 0.0254629</code></pre>
 <p>In Pearson correlation method, the results mean there are high correlations between x and y when p-value is less than 0.05 and the absolute value of sample estimates(r value) is higher. Based on this theory, the three results above show that high temperatures have correlation with daily AQI values. So finally we can get the conclusion that the air quality is worse when temperature rises.</p>
-</div>
 </div>
 </div>
 <div id="conclusions" class="section level1">

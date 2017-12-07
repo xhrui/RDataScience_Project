@@ -1,6 +1,9 @@
 ---
 title: "Visualization of air quality in Buffalo and the effective factors"
 author: Xiaohan Rui
+output:
+    html_document:
+        code_folding: hide
 
 ---
 
@@ -129,32 +132,28 @@ dygraph(dt, main = "Daily AQI value in Buffalo, NY") %>%
 ```
 
 
+
 Through the two graphics above, it is clearly to find that calendar heatmap is better for readers to get more inofrmation, such as how many unhealthy days in 2016? or which days are unhealthy days? In dygraphics people can see the trend of the changing about AQI values but it does not provide with daily data visually. 
 
 
 #### AQI values and the influential factors
 In this project, we choose three effective factors which are average daily wind speed, daily maximum temperatures and daily minimum temperatures. So calendarplot function is used to show different levels of each factors in each day so that we can see changes in every day.
 
-# {.tabset}
 
-## Awnd
 Plots the average daily wind speed:
 ```{r, warning=FALSE}
 calendarPlot(d_filtered_2016, pollutant = "awnd", year=2016, main =  "Average daily wind speed in Buffalo (2016)", cols = "heat")
 ```
 
-## Tmax
 Plots the daily maximum temperatures:
 ```{r, warning=FALSE}
 calendarPlot(d_filtered_2016, pollutant = "tmax", year=2016, main = "Daily maximum temperatures in Buffalo (2016)")
 ```
 
-## Tmin
 Plots the daily minimum temperatures:
 ```{r, warning=FALSE}
 calendarPlot(d_filtered_2016, pollutant = "tmin", year=2016, main = "Daily minimum temperatures in Buffalo (2016)")
 ```
-### End 
 
 #### Correlation Analysis
 According to figures above, we can reach the preliminary conclusion that high temperature may be correlative with unhealthy air quality. However, this hypothsis need to be proved so we do Pearson Correlations for each effective factors:
