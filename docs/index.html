@@ -334,7 +334,11 @@ div.tocify {
 <div id="data" class="section level4">
 <h4>Data</h4>
 <p>AQI data is downloaded from EPA AIR data website: <a href="https://www.epa.gov/outdoor-air-quality-data" class="uri">https://www.epa.gov/outdoor-air-quality-data</a>. The AirData website gives you access to air quality data collected at outdoor monitors across the United States, Puerto Rico, and the U.S. Virgin Islands. The data comes primarily from the AQS (Air Quality System) database. In this project, we choose PM2.5 AQI data in 2016 from this website. When logging in this website, we can click “Download Daily Data” and then choose “PM2.5”, “2016”, “New York” and “Buffalo” as key words to get specific data for this project.</p>
-<p>Global historical climatology network (GHCN) is an integrated database of climate summaries from land surface stations across the globe that have been subjected to a common suite of quality assurance reviews. In this project we use three variables from GHCN data: AWND: Average daily wind speed (meters per second or miles per hour as per user preference); TMAX: Daily maximum temperature; TMIN: Daily minimum temperature.</p>
+<p>Global historical climatology network (GHCN) is an integrated database of climate summaries from land surface stations across the globe that have been subjected to a common suite of quality assurance reviews.<br />
+In this project we use three variables from GHCN data:<br />
+AWND: Average daily wind speed (meters per second or miles per hour as per user preference);<br />
+TMAX: Daily maximum temperature;<br />
+TMIN: Daily minimum temperature.</p>
 </div>
 <div id="method-and-code" class="section level4">
 <h4>Method and Code</h4>
@@ -402,8 +406,8 @@ dplyr::filter(st,
 <pre class="r"><code>d_filtered_2016=filter(d_filtered,date&gt;=as.Date(&quot;2016-01-01&quot;)&amp;date&lt;=as.Date(&quot;2016-12-31&quot;))
 
 datatable(d_filtered_2016, options = list(pageLength=5)) %&gt;% frameWidget(height=400)</code></pre>
-<div id="htmlwidget-02938cebbcb45fa2a249" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-02938cebbcb45fa2a249">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-6.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-bcd0f5273f8cda79bc5c" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-bcd0f5273f8cda79bc5c">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-6.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </div>
@@ -433,23 +437,32 @@ datatable(d_filtered_2016, options = list(pageLength=5)) %&gt;% frameWidget(heig
 dygraph(dt, main = &quot;Daily AQI value in Buffalo, NY&quot;) %&gt;% 
   dyRangeSelector(dateWindow = c(&quot;2016-01-01&quot;, &quot;2016-12-31&quot;))%&gt;%
   frameWidget(height =300)</code></pre>
-<div id="htmlwidget-caa646112dd8049a7e4c" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-caa646112dd8049a7e4c">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-8.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-28d41fc4c90835e73aa2" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-28d41fc4c90835e73aa2">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-8.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 <p>Through the two graphics above, it is clearly to find that calendar heatmap is better for readers to get more inofrmation, such as how many unhealthy days in 2016? or which days are unhealthy days? In dygraphics people can see the trend of the changing about AQI values but it does not provide with daily data visually.</p>
 </div>
 </div>
-<div id="aqi-values-and-the-influential-factors" class="section level4">
+<div id="aqi-values-and-the-influential-factors" class="section level4 tabset">
 <h4>AQI values and the influential factors</h4>
 <p>In this project, we choose three effective factors which are average daily wind speed, daily maximum temperatures and daily minimum temperatures. So calendarplot function is used to show different levels of each factors in each day so that we can see changes in every day.</p>
+<div id="awnd" class="section level5">
+<h5>Awnd</h5>
 <p>Plots the average daily wind speed:</p>
 <pre class="r"><code>calendarPlot(d_filtered_2016, pollutant = &quot;awnd&quot;, year=2016, main =  &quot;Average daily wind speed in Buffalo (2016)&quot;, cols = &quot;heat&quot;)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="tmax" class="section level5">
+<h5>Tmax</h5>
 <p>Plots the daily maximum temperatures:</p>
 <pre class="r"><code>calendarPlot(d_filtered_2016, pollutant = &quot;tmax&quot;, year=2016, main = &quot;Daily maximum temperatures in Buffalo (2016)&quot;)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+</div>
+<div id="tmin" class="section level5">
+<h5>Tmin</h5>
 <p>Plots the daily minimum temperatures:</p>
 <pre class="r"><code>calendarPlot(d_filtered_2016, pollutant = &quot;tmin&quot;, year=2016, main = &quot;Daily minimum temperatures in Buffalo (2016)&quot;)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
 </div>
 <div id="correlation-analysis" class="section level4">
 <h4>Correlation Analysis</h4>

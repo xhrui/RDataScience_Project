@@ -19,14 +19,14 @@ Additionally, it is not enough to just know what is air quality. So learning the
  
 AQI data is downloaded from EPA AIR data website: https://www.epa.gov/outdoor-air-quality-data. The AirData website gives you access to air quality data collected at outdoor monitors across the United States, Puerto Rico, and the U.S. Virgin Islands. The data comes primarily from the AQS (Air Quality System) database. In this project, we choose PM2.5 AQI data in 2016 from this website. When logging in this website, we can click "Download Daily Data" and then choose "PM2.5", "2016", "New York" and "Buffalo" as key words to get specific data for this project.
  
-Global historical climatology network (GHCN) is an integrated database of climate summaries from land surface stations across the globe that have been subjected to a common suite of quality assurance reviews. 
-In this project we use three variables from GHCN data:
-AWND: Average daily wind speed (meters per second or miles per hour as per user preference);
-TMAX: Daily maximum temperature;
+Global historical climatology network (GHCN) is an integrated database of climate summaries from land surface stations across the globe that have been subjected to a common suite of quality assurance reviews.   
+In this project we use three variables from GHCN data:   
+AWND: Average daily wind speed (meters per second or miles per hour as per user preference);  
+TMAX: Daily maximum temperature;   
 TMIN: Daily minimum temperature.
 
 #### Method and Code
- Load any required packages in a code chunk (you may need to install some packages):
+Load any required packages in a code chunk (you may need to install some packages):
 ```{r, warning=FALSE, message=FALSE}
 library(plyr)
 library(dplyr)
@@ -135,24 +135,30 @@ dygraph(dt, main = "Daily AQI value in Buffalo, NY") %>%
 Through the two graphics above, it is clearly to find that calendar heatmap is better for readers to get more inofrmation, such as how many unhealthy days in 2016? or which days are unhealthy days? In dygraphics people can see the trend of the changing about AQI values but it does not provide with daily data visually. 
 
 
-#### AQI values and the influential factors
+#### AQI values and the influential factors {.tabset}
 In this project, we choose three effective factors which are average daily wind speed, daily maximum temperatures and daily minimum temperatures. So calendarplot function is used to show different levels of each factors in each day so that we can see changes in every day.
 
-
+##### Awnd
 Plots the average daily wind speed:
 ```{r, warning=FALSE}
 calendarPlot(d_filtered_2016, pollutant = "awnd", year=2016, main =  "Average daily wind speed in Buffalo (2016)", cols = "heat")
 ```
 
+##### Tmax
 Plots the daily maximum temperatures:
 ```{r, warning=FALSE}
 calendarPlot(d_filtered_2016, pollutant = "tmax", year=2016, main = "Daily maximum temperatures in Buffalo (2016)")
 ```
 
+##### Tmin
 Plots the daily minimum temperatures:
 ```{r, warning=FALSE}
 calendarPlot(d_filtered_2016, pollutant = "tmin", year=2016, main = "Daily minimum temperatures in Buffalo (2016)")
 ```
+
+
+
+
 
 #### Correlation Analysis
 According to figures above, we can reach the preliminary conclusion that high temperature may be correlative with unhealthy air quality. However, this hypothsis need to be proved so we do Pearson Correlations for each effective factors:
