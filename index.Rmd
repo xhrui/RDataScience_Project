@@ -109,7 +109,7 @@ datatable(d_filtered_2016, options = list(pageLength=5)) %>% frameWidget(height=
 ##### Calendar heatmap:
 This can take a few seconds to show the plot about Calendar Heatmap of PM2.5 air quality in Buffalo. In this ggplot functions, I use different colours to show different AQI values in which yellow represents low value and red represents high value. Additionally, in Air Quality Index(AQI) leves, it is good day when AQI value is less than 50, and more than 50 but less than 100 means moderate, and more than 100 but less than 150 means unhealthy for sensitive groups. These information can all be shown in this calendar heapmap figure.
 
-```{r, warning=FALSE, echo=FALSE}
+```{r, warning=FALSE}
 ggplot(dat,aes(monthweek, weekdayf,fill=DAILY_AQI_VALUE))+
   
   geom_tile(colour='white') +

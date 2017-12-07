@@ -381,14 +381,10 @@ dplyr::filter(st,
               between(latitude,coords[2]-1,coords[2]+1) &amp;
               between(longitude,coords[1]-1,coords[1]+1)&amp;
          element==&quot;TMAX&quot;)</code></pre>
-<pre><code>## # A tibble: 3 x 11
-##            id latitude longitude elevation state       name gsn_flag
-##         &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;
-## 1 USC00301010  42.8833  -78.8833    -999.9    NY    BUFFALO         
-## 2 USC00301018  42.9333  -78.9000     177.1    NY BUFFALO #2         
-## 3 USW00014733  42.9486  -78.7369     211.2    NY    BUFFALO         
-## # ... with 4 more variables: wmo_id &lt;chr&gt;, element &lt;chr&gt;,
-## #   first_year &lt;int&gt;, last_year &lt;int&gt;</code></pre>
+<pre><code>## # A tibble: 0 x 11
+## # ... with 11 variables: id &lt;chr&gt;, latitude &lt;dbl&gt;, longitude &lt;dbl&gt;,
+## #   elevation &lt;dbl&gt;, state &lt;chr&gt;, name &lt;chr&gt;, gsn_flag &lt;chr&gt;,
+## #   wmo_id &lt;chr&gt;, element &lt;chr&gt;, first_year &lt;int&gt;, last_year &lt;int&gt;</code></pre>
 <pre class="r"><code>d=meteo_tidy_ghcnd(&quot;USW00014733&quot;,
                    var = c(&quot;TMAX&quot;,&quot;TMIN&quot;,&quot;AWND&quot;),
                    keep_flags=T)</code></pre>
@@ -402,8 +398,8 @@ dplyr::filter(st,
 <pre class="r"><code>d_filtered_2016=filter(d_filtered,date&gt;=as.Date(&quot;2016-01-01&quot;)&amp;date&lt;=as.Date(&quot;2016-12-31&quot;))
 
 datatable(d_filtered_2016, options = list(pageLength=5)) %&gt;% frameWidget(height=400)</code></pre>
-<div id="htmlwidget-ebf9d947166fe3534267" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-ebf9d947166fe3534267">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-6.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-08eaa227c3448b4fc7c6" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-08eaa227c3448b4fc7c6">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-6.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </div>
@@ -414,6 +410,15 @@ datatable(d_filtered_2016, options = list(pageLength=5)) %&gt;% frameWidget(heig
 <div id="calendar-heatmap" class="section level5">
 <h5>Calendar heatmap:</h5>
 <p>This can take a few seconds to show the plot about Calendar Heatmap of PM2.5 air quality in Buffalo. In this ggplot functions, I use different colours to show different AQI values in which yellow represents low value and red represents high value. Additionally, in Air Quality Index(AQI) leves, it is good day when AQI value is less than 50, and more than 50 but less than 100 means moderate, and more than 100 but less than 150 means unhealthy for sensitive groups. These information can all be shown in this calendar heapmap figure.</p>
+<pre class="r"><code>ggplot(dat,aes(monthweek, weekdayf,fill=DAILY_AQI_VALUE))+
+  
+  geom_tile(colour=&#39;white&#39;) +
+  
+  facet_wrap(~monthf ,nrow=3) +
+  
+  scale_fill_gradient(space=&quot;Lab&quot;,limits=c(0, max(dat$DAILY_AQI_VALUE)),low=&quot;yellow&quot;, high=&quot; red&quot;) +
+  
+  labs(title=&quot;Buffalo PM2.5 AQI Calendar Heatmap in 2016&quot;,x=&quot;Week of month&quot;,y=&quot;&quot;)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
 </div>
 <div id="dygraphics" class="section level5">
@@ -424,8 +429,8 @@ datatable(d_filtered_2016, options = list(pageLength=5)) %&gt;% frameWidget(heig
 dygraph(dt, main = &quot;Daily AQI value in Buffalo, NY&quot;) %&gt;% 
   dyRangeSelector(dateWindow = c(&quot;2016-01-01&quot;, &quot;2016-12-31&quot;))%&gt;%
   frameWidget(height =300)</code></pre>
-<div id="htmlwidget-e75cf5ec8d15285ef338" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-e75cf5ec8d15285ef338">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-8.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-dc640c02e3f78145ef4e" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-dc640c02e3f78145ef4e">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-8.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 <p>Through the two graphics above, it is clearly to find that calendar heatmap is better for readers to get more inofrmation, such as how many unhealthy days in 2016? or which days are unhealthy days? In dygraphics people can see the trend of the changing about AQI values but it does not provide with daily data visually.</p>
 </div>
 </div>
