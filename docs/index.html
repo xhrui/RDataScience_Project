@@ -373,9 +373,9 @@ dat$weekdayf&lt;-factor(dat$weekday,levels=rev(0:6),labels=rev(c(&quot;Sun&quot;
 dat$week &lt;- as.numeric(format(dat$date,&quot;%W&quot;))
 dat&lt;-ddply(dat,.(monthf),transform,monthweek=1+week-min(week))</code></pre>
 </div>
-<div id="load-wealth-data" class="section level5">
-<h5>Load Wealth data:</h5>
-<p>Wealth data comes from Global historical climatology network (GHCN) and we use three variables as the influential factors, which are average daily wind speed (awnd), daliy maximum temperatures (tmax) and daily minimum temperatures (tmin).</p>
+<div id="load-weather-data" class="section level5">
+<h5>Load Weather data:</h5>
+<p>Weather data comes from Global historical climatology network (GHCN) and we use three variables as the influential factors, which are average daily wind speed (awnd), daliy maximum temperatures (tmax) and daily minimum temperatures (tmin).</p>
 <pre class="r"><code>datadir=&quot;data&quot;
 st = ghcnd_stations()
 st=dplyr::filter(st,element%in%c(&quot;TMAX&quot;,&quot;TMIN&quot;,&quot;AWND&quot;))
@@ -385,14 +385,10 @@ dplyr::filter(st,
               between(latitude,coords[2]-1,coords[2]+1) &amp;
               between(longitude,coords[1]-1,coords[1]+1)&amp;
          element==&quot;TMAX&quot;)</code></pre>
-<pre><code>## # A tibble: 3 x 11
-##            id latitude longitude elevation state       name gsn_flag
-##         &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;
-## 1 USC00301010  42.8833  -78.8833    -999.9    NY    BUFFALO         
-## 2 USC00301018  42.9333  -78.9000     177.1    NY BUFFALO #2         
-## 3 USW00014733  42.9486  -78.7369     211.2    NY    BUFFALO         
-## # ... with 4 more variables: wmo_id &lt;chr&gt;, element &lt;chr&gt;,
-## #   first_year &lt;int&gt;, last_year &lt;int&gt;</code></pre>
+<pre><code>## # A tibble: 0 x 11
+## # ... with 11 variables: id &lt;chr&gt;, latitude &lt;dbl&gt;, longitude &lt;dbl&gt;,
+## #   elevation &lt;dbl&gt;, state &lt;chr&gt;, name &lt;chr&gt;, gsn_flag &lt;chr&gt;,
+## #   wmo_id &lt;chr&gt;, element &lt;chr&gt;, first_year &lt;int&gt;, last_year &lt;int&gt;</code></pre>
 <pre class="r"><code>d=meteo_tidy_ghcnd(&quot;USW00014733&quot;,
                    var = c(&quot;TMAX&quot;,&quot;TMIN&quot;,&quot;AWND&quot;),
                    keep_flags=T)</code></pre>
@@ -406,8 +402,8 @@ dplyr::filter(st,
 <pre class="r"><code>d_filtered_2016=filter(d_filtered,date&gt;=as.Date(&quot;2016-01-01&quot;)&amp;date&lt;=as.Date(&quot;2016-12-31&quot;))
 
 datatable(d_filtered_2016, options = list(pageLength=5)) %&gt;% frameWidget(height=400)</code></pre>
-<div id="htmlwidget-bcd0f5273f8cda79bc5c" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-bcd0f5273f8cda79bc5c">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-6.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-611c0a58ac3838b07246" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-611c0a58ac3838b07246">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-6.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </div>
@@ -437,8 +433,8 @@ datatable(d_filtered_2016, options = list(pageLength=5)) %&gt;% frameWidget(heig
 dygraph(dt, main = &quot;Daily AQI value in Buffalo, NY&quot;) %&gt;% 
   dyRangeSelector(dateWindow = c(&quot;2016-01-01&quot;, &quot;2016-12-31&quot;))%&gt;%
   frameWidget(height =300)</code></pre>
-<div id="htmlwidget-28d41fc4c90835e73aa2" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-28d41fc4c90835e73aa2">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-8.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-98e4302deac6091c1df2" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-98e4302deac6091c1df2">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-8.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 <p>Through the two graphics above, it is clearly to find that calendar heatmap is better for readers to get more inofrmation, such as how many unhealthy days in 2016? or which days are unhealthy days? In dygraphics people can see the trend of the changing about AQI values but it does not provide with daily data visually.</p>
 </div>
 </div>

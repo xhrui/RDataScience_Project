@@ -65,8 +65,8 @@ dat$week <- as.numeric(format(dat$date,"%W"))
 dat<-ddply(dat,.(monthf),transform,monthweek=1+week-min(week))
 ```
 
-##### Load Wealth data:
-Wealth data comes from Global historical climatology network (GHCN) and we use three variables as the influential factors, which are average daily wind speed (awnd), daliy maximum temperatures (tmax) and daily minimum temperatures (tmin).
+##### Load Weather data:
+Weather data comes from Global historical climatology network (GHCN) and we use three variables as the influential factors, which are average daily wind speed (awnd), daliy maximum temperatures (tmax) and daily minimum temperatures (tmin).
 ```{r, warning=FALSE, message=FALSE}
 datadir="data"
 st = ghcnd_stations()
